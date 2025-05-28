@@ -1,0 +1,23 @@
+################################################################################
+#                                   NetCore                                    #
+################################################################################
+
+# Entornos de desarrollo IDE
+.vs/
+
+# Archivos de usuario de IDE
+*.user
+*.suo
+*.userprefs
+
+# Builds y dependencias
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+*.nupkg
+*.pdb
+*.cache
+
+# Archivos de publicación
+publish/
