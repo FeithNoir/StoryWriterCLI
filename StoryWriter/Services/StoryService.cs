@@ -7,11 +7,96 @@ namespace StoryWriter.Services
     {
         private string _currentDirectory = Directory.GetCurrentDirectory();
         private readonly StoryIndexService _indexService;
+        private readonly string _defaultFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "StoryMD");
+        private readonly string _configFileName = ".storyconfig";
 
         public StoryService()
         {
+            if (!File.Exists(_configFileName))
+            {
+                MostrarBienvenida();
+            }
+            else
+            {
+                _currentDirectory = File.ReadAllText(_configFileName).Trim();
+                if (!Directory.Exists(_currentDirectory))
+                    Directory.CreateDirectory(_currentDirectory);
+            }
+
             _indexService = new StoryIndexService(_currentDirectory);
         }
+
+        private void MostrarBienvenida()
+        {
+            Console.Clear();
+            Console.WriteLine("🌟 ¡Bienvenido/a a StoryWriter! 🌟");
+            Console.WriteLine("Este programa te permite escribir, editar y organizar tus historias en formato Markdown.");
+            Console.WriteLine("¿Dónde deseas guardar tus historias?");
+            Console.WriteLine("1. Usar ruta por defecto (Documentos/StoryMD)");
+            Console.WriteLine("2. Elegir una ruta personalizada");
+            Console.Write("Selecciona una opción: ");
+
+            string? input = Console.ReadLine()?.Trim();
+
+            if (input == "2")
+            {
+                Console.Write("Ingresa la ruta completa: ");
+                string? ruta = Console.ReadLine()?.Trim();
+                if (!string.IsNullOrEmpty(ruta))
+                {
+                    _currentDirectory = ruta;
+                    Directory.CreateDirectory(ruta);
+                }
+                else
+                {
+                    Console.WriteLine("Ruta no válida. Usando la ruta por defecto.");
+                    _currentDirectory = _defaultFolder;
+                    Directory.CreateDirectory(_defaultFolder);
+                }
+            }
+            else
+            {
+                _currentDirectory = _defaultFolder;
+                Directory.CreateDirectory(_defaultFolder);
+            }
+
+            File.WriteAllText(_configFileName, _currentDirectory);
+
+            CrearHistoriaDeBienvenida();
+            Console.WriteLine("\n Listo. Presiona cualquier tecla para continuar...");
+            Console.ReadKey();
+        }
+
+        private void CrearHistoriaDeBienvenida()
+        {
+            var bienvenida = new Story
+            {
+                Title = "Bienvenido a StoryWriter",
+                Tags = new List<string> { "tutorial", "introducción" },
+                Content = """
+¡Hola! 👋
+
+Gracias por usar StoryWriter. Aquí puedes crear y editar historias en Markdown de forma sencilla.
+
+**Comandos útiles al escribir:**
+- `--save`: guarda el progreso actual.
+- `--exit`: salir del modo de escritura.
+- `--menu`: regresar al menú principal.
+
+**Tips:**
+- Usa `#` para títulos, `**texto**` para negritas, y `> cita` para citas.
+- Puedes organizar tus historias en carpetas.
+- Usa la biblioteca para buscar por título o etiquetas.
+
+¡Feliz escritura! ✍️
+"""
+            };
+
+            string nombreArchivo = string.Join("_", bienvenida.Title.Split(Path.GetInvalidFileNameChars())) + ".md";
+            string ruta = Path.Combine(_currentDirectory, nombreArchivo);
+            File.WriteAllText(ruta, bienvenida.GetMetadataAsMarkdown() + bienvenida.Content);
+        }
+
 
         public void Start()
         {
